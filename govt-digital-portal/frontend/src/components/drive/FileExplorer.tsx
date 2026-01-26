@@ -20,6 +20,8 @@ const FileExplorer = () => {
     const [isUploading, setIsUploading] = useState(false);
 
     const [previewFile, setPreviewFile] = useState<any | null>(null);
+    const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
+    const [previewLoading, setPreviewLoading] = useState(false);
 
     // Rename State
     const [isRenameOpen, setIsRenameOpen] = useState(false);
@@ -266,7 +268,7 @@ const FileExplorer = () => {
         setSearchQuery('');
     }
 
-    const handleFileClick = (file: any) => {
+    const handleFileClick = async (file: any) => {
         if (file.type === 'folder') {
             openFolder(file);
         } else {
@@ -275,10 +277,48 @@ const FileExplorer = () => {
 
             if (isPreviewable) {
                 setPreviewFile(file);
+                setPreviewLoading(true);
+                setPreviewBlobUrl(null);
+                try {
+                    const response = await api.get(`/files/view/${file._id}`, { responseType: 'blob' });
+                    const blobUrl = URL.createObjectURL(response.data);
+                    setPreviewBlobUrl(blobUrl);
+                } catch (error) {
+                    console.error('Preview failed:', error);
+                    toast.error('Failed to load preview');
+                } finally {
+                    setPreviewLoading(false);
+                }
             } else {
-                window.open(`http://localhost:5000${file.url}`, '_blank');
+                // For non-previewable files, trigger download
+                handleDownload(file);
             }
         }
+    };
+
+    const handleDownload = async (file: any) => {
+        try {
+            const response = await api.get(`/files/download/${file._id}`, { responseType: 'blob' });
+            const blobUrl = URL.createObjectURL(response.data);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error('Download failed:', error);
+            toast.error('Failed to download file');
+        }
+    };
+
+    const closePreview = () => {
+        if (previewBlobUrl) {
+            URL.revokeObjectURL(previewBlobUrl);
+        }
+        setPreviewFile(null);
+        setPreviewBlobUrl(null);
     };
 
     return (
@@ -549,31 +589,49 @@ const FileExplorer = () => {
                     <div className="flex-shrink-0 p-3 flex justify-between items-center bg-zinc-900 border-b border-zinc-800">
                         <h3 className="font-semibold truncate pr-4 text-base text-white flex-1">{previewFile.name}</h3>
                         <div className="flex items-center gap-2">
-                            <a
-                                href={`/govapi/files/download/${previewFile._id}`}
+                            <button
+                                onClick={() => handleDownload(previewFile)}
                                 className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium flex items-center gap-2"
                             >
                                 <FileText size={16} /> Download
-                            </a>
-                            <button onClick={() => setPreviewFile(null)} className="p-2 hover:bg-white/10 rounded-full text-white transition-colors"><X size={24} /></button>
+                            </button>
+                            <button onClick={closePreview} className="p-2 hover:bg-white/10 rounded-full text-white transition-colors"><X size={24} /></button>
                         </div>
                     </div>
                     {/* Content Area - Full Height */}
                     <div className="flex-1 overflow-hidden flex items-center justify-center bg-zinc-950">
-                        {previewFile.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                            <img src={`/govapi/files/view/${previewFile._id}`} className="max-w-full max-h-full object-contain" alt={previewFile.name} />
-                        ) : previewFile.name.match(/\.pdf$/i) ? (
-                            <iframe src={`/govapi/files/view/${previewFile._id}`} className="w-full h-full bg-white" title={previewFile.name} />
+                        {previewLoading ? (
+                            <div className="text-center text-white">
+                                <Loader2 size={48} className="animate-spin mx-auto mb-4" />
+                                <p className="text-lg">Loading preview...</p>
+                            </div>
+                        ) : previewBlobUrl ? (
+                            previewFile.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                <img src={previewBlobUrl} className="max-w-full max-h-full object-contain" alt={previewFile.name} />
+                            ) : previewFile.name.match(/\.pdf$/i) ? (
+                                <iframe src={previewBlobUrl} className="w-full h-full bg-white" title={previewFile.name} />
+                            ) : (
+                                <div className="text-center p-12 text-white">
+                                    <FileText size={64} className="mx-auto mb-6 opacity-30" />
+                                    <p className="text-xl font-medium">Preview not available</p>
+                                    <button
+                                        onClick={() => handleDownload(previewFile)}
+                                        className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                                    >
+                                        Download File
+                                    </button>
+                                </div>
+                            )
                         ) : (
                             <div className="text-center p-12 text-white">
                                 <FileText size={64} className="mx-auto mb-6 opacity-30" />
-                                <p className="text-xl font-medium">Preview not available</p>
-                                <a
-                                    href={`/govapi/files/download/${previewFile._id}`}
-                                    className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 inline-block"
+                                <p className="text-xl font-medium">Failed to load preview</p>
+                                <button
+                                    onClick={() => handleDownload(previewFile)}
+                                    className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
                                 >
                                     Download File
-                                </a>
+                                </button>
                             </div>
                         )}
                     </div>
