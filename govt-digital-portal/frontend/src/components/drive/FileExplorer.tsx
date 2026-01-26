@@ -584,22 +584,22 @@ const FileExplorer = () => {
             </Modal>
 
             {previewFile && (
-                <div className="fixed inset-0 bg-black z-[100] flex flex-col">
-                    {/* Header Bar */}
-                    <div className="flex-shrink-0 p-3 flex justify-between items-center bg-zinc-900 border-b border-zinc-800">
-                        <h3 className="font-semibold truncate pr-4 text-base text-white flex-1">{previewFile.name}</h3>
+                <div className="fixed inset-0 bg-black z-[100]">
+                    {/* Floating Header Bar - Fixed at Top */}
+                    <div className="absolute top-0 left-0 right-0 z-10 p-2 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
+                        <h3 className="font-semibold truncate pr-4 text-sm text-white flex-1 drop-shadow-lg">{previewFile.name}</h3>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => handleDownload(previewFile)}
-                                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium flex items-center gap-2"
+                                className="px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
                             >
-                                <FileText size={16} /> Download
+                                <FileText size={14} /> Download
                             </button>
-                            <button onClick={closePreview} className="p-2 hover:bg-white/10 rounded-full text-white transition-colors"><X size={24} /></button>
+                            <button onClick={closePreview} className="p-2 bg-black/50 hover:bg-white/20 rounded-full text-white transition-colors shadow-lg"><X size={20} /></button>
                         </div>
                     </div>
-                    {/* Content Area - Full Height */}
-                    <div className="flex-1 overflow-hidden flex items-center justify-center bg-zinc-950">
+                    {/* Content Area - Full Screen */}
+                    <div className="w-full h-full flex items-center justify-center bg-zinc-950">
                         {previewLoading ? (
                             <div className="text-center text-white">
                                 <Loader2 size={48} className="animate-spin mx-auto mb-4" />
