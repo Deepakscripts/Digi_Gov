@@ -1,0 +1,11 @@
+<Application x:Class="GovtDesktop.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:GovtDesktop"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+         <SolidColorBrush x:Key="PrimaryBrush" Color="#3B82F6"/>
+         <local:FolderColorConverter x:Key="FolderColorConverter"/>
+         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Application.Resources>
+</Application>

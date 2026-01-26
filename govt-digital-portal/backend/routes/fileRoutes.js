@@ -1,0 +1,147 @@
+const express = require('express');
+const router = express.Router();
+const File = require('../models/File');
+const { protect } = require('../middleware/authMiddleware');
+const upload = require('../middleware/uploadMiddleware');
+
+// Get My Files
+router.get('/', protect, async (req, res) => {
+    const parentId = req.query.parentId || null;
+    // Handing "null" string from query params if passed as string "null"
+    const pid = parentId === 'null' ? null : parentId;
+
+    try {
+        const files = await File.find({ owner: req.user.id, parentId: pid }).sort({ type: 1, name: 1 });
+        res.json(files);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Upload Files (Bulk)
+router.post('/upload', protect, upload.array('files'), async (req, res) => {
+    const { parentId } = req.body;
+    const pid = parentId === 'null' ? null : parentId;
+
+    if (!req.files || req.files.length === 0) return res.status(400).json({ message: 'No files uploaded' });
+
+    try {
+        const uploadedFiles = [];
+        for (const file of req.files) {
+            const newFile = await File.create({
+                name: file.originalname,
+                type: 'file',
+                extension: require('path').extname(file.originalname),
+                url: `/uploads/${file.filename}`,
+                size: file.size,
+                owner: req.user.id,
+                parentId: pid
+            });
+            uploadedFiles.push(newFile);
+        }
+        res.status(201).json(uploadedFiles);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Create Folder
+router.post('/folder', protect, async (req, res) => {
+    const { name, parentId } = req.body;
+    const pid = parentId === 'null' ? null : parentId;
+    try {
+        const folder = await File.create({
+            name,
+            type: 'folder',
+            owner: req.user.id,
+            parentId: pid
+        });
+        res.status(201).json(folder);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Rename or Update File (Name, Remarks)
+router.put('/:id', protect, async (req, res) => {
+    const { name, remarks } = req.body;
+    try {
+        const file = await File.findOne({ _id: req.params.id, owner: req.user.id });
+        if (file) {
+            if (name) file.name = name;
+            if (remarks !== undefined) file.remarks = remarks;
+            await file.save();
+            res.json(file);
+        } else {
+            res.status(404).json({ message: 'Not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Get Breadcrumb Path
+router.get('/path/:id', protect, async (req, res) => {
+    try {
+        const path = [];
+        let currentId = req.params.id;
+
+        // Safety limit for recursion
+        for (let i = 0; i < 10; i++) {
+            if (!currentId || currentId === 'null') break;
+            const folder = await File.findById(currentId);
+            if (!folder) break;
+
+            path.unshift(folder);
+            currentId = folder.parentId;
+        }
+        res.json(path);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+const deleteFolderRecursive = async (folderId, userId) => {
+    const children = await File.find({ parentId: folderId, owner: userId });
+    for (const child of children) {
+        if (child.type === 'folder') {
+            await deleteFolderRecursive(child._id, userId);
+        }
+        await File.deleteOne({ _id: child._id });
+    }
+};
+
+router.delete('/:id', protect, async (req, res) => {
+    try {
+        const file = await File.findOne({ _id: req.params.id, owner: req.user.id });
+        if (file) {
+            if (file.type === 'folder') {
+                await deleteFolderRecursive(file._id, req.user.id);
+            }
+            await file.deleteOne();
+            res.json({ message: 'Deleted' });
+        } else {
+            res.status(404).json({ message: 'Not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Search Files and Folders
+router.get('/search', protect, async (req, res) => {
+    const query = req.query.q;
+    if (!query) return res.json([]);
+
+    try {
+        const files = await File.find({
+            owner: req.user.id,
+            name: { $regex: query, $options: 'i' }
+        }).sort({ type: 1, name: 1 });
+        res.json(files);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+module.exports = router;

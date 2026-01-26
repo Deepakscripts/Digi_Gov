@@ -1,0 +1,20 @@
+ssh root@62.72.43.199
+
+
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y nodejs npm mongodb nginx
+sudo npm install -g pm2
+
+
+PORT=5001
+MONGO_URI=mongodb://127.0.0.1:27017/govt-portal
+JWT_SECRET=secret
+R2_ACCESS_KEY_ID=cbde2b66e1b107b15a12763a500106fb
+R2_SECRET_ACCESS_KEY=e7c8e69f956f00a2368cd2ad5aa005f21d7790c9d6ebb9e5cd8afd8ae101a0ed
+R2_BUCKET_NAME=chettasdosabackupbucket
+R2_ENDPOINT=https://22d5f7b3d2213d24ca45e49edd547fc1.r2.cloudflarestorage.com
+
+
+cd backend
+npm install
+pm2 start server.js --name "govt-backend"
