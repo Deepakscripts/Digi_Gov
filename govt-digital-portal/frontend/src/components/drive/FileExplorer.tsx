@@ -550,15 +550,7 @@ const FileExplorer = () => {
                         <h3 className="font-semibold truncate pr-4 text-base text-white flex-1">{previewFile.name}</h3>
                         <div className="flex items-center gap-2">
                             <a
-                                href={previewFile.url}
-                                download={previewFile.name}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    // Direct download via new tab for CORS
-                                    window.open(previewFile.url, '_blank');
-                                }}
+                                href={`/govapi/files/download/${previewFile._id}`}
                                 className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium flex items-center gap-2"
                             >
                                 <FileText size={16} /> Download
@@ -569,19 +561,19 @@ const FileExplorer = () => {
                     {/* Content Area - Full Height */}
                     <div className="flex-1 overflow-hidden flex items-center justify-center bg-zinc-950">
                         {previewFile.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                            <img src={previewFile.url} className="max-w-full max-h-full object-contain" alt={previewFile.name} />
+                            <img src={`/govapi/files/view/${previewFile._id}`} className="max-w-full max-h-full object-contain" alt={previewFile.name} />
                         ) : previewFile.name.match(/\.pdf$/i) ? (
-                            <iframe src={previewFile.url} className="w-full h-full bg-white" title={previewFile.name} />
+                            <iframe src={`/govapi/files/view/${previewFile._id}`} className="w-full h-full bg-white" title={previewFile.name} />
                         ) : (
                             <div className="text-center p-12 text-white">
                                 <FileText size={64} className="mx-auto mb-6 opacity-30" />
                                 <p className="text-xl font-medium">Preview not available</p>
-                                <button
-                                    onClick={() => window.open(previewFile.url, '_blank')}
-                                    className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                                <a
+                                    href={`/govapi/files/download/${previewFile._id}`}
+                                    className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 inline-block"
                                 >
                                     Download File
-                                </button>
+                                </a>
                             </div>
                         )}
                     </div>

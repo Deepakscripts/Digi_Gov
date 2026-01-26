@@ -4,7 +4,7 @@ const File = require('../models/File');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 const s3Client = require('../config/r2');
-const { PutObjectCommand } = require('@aws-sdk/client-s3');
+const { PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 const path = require('path');
 
 // Get My Files
@@ -161,4 +161,69 @@ router.get('/search', protect, async (req, res) => {
     }
 });
 
+// Proxy Download - Fetch file from R2 and serve (Bypasses CORS)
+router.get('/download/:id', protect, async (req, res) => {
+    try {
+        const file = await File.findOne({ _id: req.params.id, owner: req.user.id });
+        if (!file || file.type === 'folder') {
+            return res.status(404).json({ message: 'File not found' });
+        }
+
+        // Extract the key from the full URL
+        const urlParts = file.url.split('/');
+        const key = urlParts.slice(3).join('/'); // Gets "uploads/filename.pdf"
+
+        const command = new GetObjectCommand({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Key: key,
+        });
+
+        const response = await s3Client.send(command);
+
+        // Set headers for download
+        res.setHeader('Content-Type', response.ContentType || 'application/octet-stream');
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(file.name)}"`);
+        res.setHeader('Content-Length', response.ContentLength);
+
+        // Pipe the stream to response
+        response.Body.pipe(res);
+    } catch (error) {
+        console.error('Download Error:', error);
+        res.status(500).json({ message: 'Error downloading file' });
+    }
+});
+
+// Proxy View - Fetch file from R2 and serve inline (for preview - Bypasses CORS)
+router.get('/view/:id', protect, async (req, res) => {
+    try {
+        const file = await File.findOne({ _id: req.params.id, owner: req.user.id });
+        if (!file || file.type === 'folder') {
+            return res.status(404).json({ message: 'File not found' });
+        }
+
+        // Extract the key from the full URL
+        const urlParts = file.url.split('/');
+        const key = urlParts.slice(3).join('/');
+
+        const command = new GetObjectCommand({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Key: key,
+        });
+
+        const response = await s3Client.send(command);
+
+        // Set headers for inline viewing
+        res.setHeader('Content-Type', response.ContentType || 'application/octet-stream');
+        res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(file.name)}"`);
+        res.setHeader('Content-Length', response.ContentLength);
+
+        // Pipe the stream to response
+        response.Body.pipe(res);
+    } catch (error) {
+        console.error('View Error:', error);
+        res.status(500).json({ message: 'Error viewing file' });
+    }
+});
+
 module.exports = router;
+
