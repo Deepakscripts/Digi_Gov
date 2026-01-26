@@ -584,36 +584,50 @@ const FileExplorer = () => {
             </Modal>
 
             {previewFile && (
-                <div className="fixed inset-0 bg-black z-[100]">
-                    {/* Floating Header Bar - Fixed at Top */}
-                    <div className="absolute top-0 left-0 right-0 z-10 p-2 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
-                        <h3 className="font-semibold truncate pr-4 text-sm text-white flex-1 drop-shadow-lg">{previewFile.name}</h3>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => handleDownload(previewFile)}
-                                className="px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium flex items-center gap-2 shadow-lg"
-                            >
-                                <FileText size={14} /> Download
-                            </button>
-                            <button onClick={closePreview} className="p-2 bg-black/50 hover:bg-white/20 rounded-full text-white transition-colors shadow-lg"><X size={20} /></button>
-                        </div>
-                    </div>
-                    {/* Content Area - Full Screen */}
-                    <div className="w-full h-full flex items-center justify-center bg-zinc-950">
-                        {previewLoading ? (
-                            <div className="text-center text-white">
-                                <Loader2 size={48} className="animate-spin mx-auto mb-4" />
-                                <p className="text-lg">Loading preview...</p>
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6" onClick={closePreview}>
+                    {/* Modal Container */}
+                    <div className="bg-card w-full max-w-5xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl border border-border/30" onClick={(e) => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="flex-shrink-0 p-4 flex justify-between items-center bg-muted/50 border-b">
+                            <h3 className="font-semibold truncate pr-4 text-lg">{previewFile.name}</h3>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => handleDownload(previewFile)}
+                                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium flex items-center gap-2"
+                                >
+                                    <FileText size={16} /> Download
+                                </button>
+                                <button onClick={closePreview} className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"><X size={22} /></button>
                             </div>
-                        ) : previewBlobUrl ? (
-                            previewFile.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                                <img src={previewBlobUrl} className="max-w-full max-h-full object-contain" alt={previewFile.name} />
-                            ) : previewFile.name.match(/\.pdf$/i) ? (
-                                <iframe src={previewBlobUrl} className="w-full h-full bg-white" title={previewFile.name} />
+                        </div>
+                        {/* Content Area */}
+                        <div className="flex-1 overflow-auto flex items-center justify-center bg-muted/20 p-4">
+                            {previewLoading ? (
+                                <div className="text-center">
+                                    <Loader2 size={48} className="animate-spin mx-auto mb-4 text-primary" />
+                                    <p className="text-lg text-muted-foreground">Loading preview...</p>
+                                </div>
+                            ) : previewBlobUrl ? (
+                                previewFile.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                    <img src={previewBlobUrl} className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg" alt={previewFile.name} />
+                                ) : previewFile.name.match(/\.pdf$/i) ? (
+                                    <iframe src={previewBlobUrl} className="w-full h-[70vh] bg-white rounded-lg shadow-lg" title={previewFile.name} />
+                                ) : (
+                                    <div className="text-center p-12">
+                                        <FileText size={64} className="mx-auto mb-6 text-muted-foreground/30" />
+                                        <p className="text-xl font-medium">Preview not available</p>
+                                        <button
+                                            onClick={() => handleDownload(previewFile)}
+                                            className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+                                        >
+                                            Download File
+                                        </button>
+                                    </div>
+                                )
                             ) : (
-                                <div className="text-center p-12 text-white">
-                                    <FileText size={64} className="mx-auto mb-6 opacity-30" />
-                                    <p className="text-xl font-medium">Preview not available</p>
+                                <div className="text-center p-12">
+                                    <FileText size={64} className="mx-auto mb-6 text-muted-foreground/30" />
+                                    <p className="text-xl font-medium">Failed to load preview</p>
                                     <button
                                         onClick={() => handleDownload(previewFile)}
                                         className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
@@ -621,19 +635,8 @@ const FileExplorer = () => {
                                         Download File
                                     </button>
                                 </div>
-                            )
-                        ) : (
-                            <div className="text-center p-12 text-white">
-                                <FileText size={64} className="mx-auto mb-6 opacity-30" />
-                                <p className="text-xl font-medium">Failed to load preview</p>
-                                <button
-                                    onClick={() => handleDownload(previewFile)}
-                                    className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-                                >
-                                    Download File
-                                </button>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
