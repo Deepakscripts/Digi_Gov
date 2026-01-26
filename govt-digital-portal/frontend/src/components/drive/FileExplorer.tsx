@@ -544,16 +544,50 @@ const FileExplorer = () => {
             </Modal>
 
             {previewFile && (
-                <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="bg-card w-full max-w-5xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl relative border border-border/20">
-                        <div className="p-4 border-b flex justify-between items-center bg-muted/30">
-                            <h3 className="font-semibold truncate pr-4 text-lg">{previewFile.name}</h3>
-                            <button onClick={() => setPreviewFile(null)} className="p-2 hover:bg-destructive/10 rounded-full text-destructive transition-colors"><X size={24} /></button>
+                <div className="fixed inset-0 bg-black/90 z-[100] flex items-start justify-center pt-4 pb-4 backdrop-blur-md animate-in fade-in duration-300 overflow-auto">
+                    <div className="bg-card w-full max-w-5xl max-h-[95vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl relative border border-border/20 my-auto">
+                        <div className="p-3 border-b flex justify-between items-center bg-muted/30 shrink-0">
+                            <h3 className="font-semibold truncate pr-4 text-base flex-1">{previewFile.name}</h3>
+                            <div className="flex items-center gap-2">
+                                <a
+                                    href={previewFile.url}
+                                    download={previewFile.name}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        fetch(previewFile.url)
+                                            .then(res => res.blob())
+                                            .then(blob => {
+                                                const url = window.URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = url;
+                                                a.download = previewFile.name;
+                                                document.body.appendChild(a);
+                                                a.click();
+                                                window.URL.revokeObjectURL(url);
+                                                a.remove();
+                                            });
+                                    }}
+                                    className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium flex items-center gap-2"
+                                >
+                                    <FileText size={16} /> Download
+                                </a>
+                                <button onClick={() => setPreviewFile(null)} className="p-2 hover:bg-destructive/10 rounded-full text-destructive transition-colors"><X size={24} /></button>
+                            </div>
                         </div>
-                        <div className="flex-1 bg-black/5 overflow-auto flex items-center justify-center p-6">
-                            {previewFile.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? <img src={`http://localhost:5000${previewFile.url}`} className="max-w-full max-h-[75vh] object-contain shadow-lg rounded-xl" /> :
-                                previewFile.name.match(/\.pdf$/i) ? <iframe src={`http://localhost:5000${previewFile.url}`} className="w-full h-[75vh] bg-white rounded-xl shadow-lg" /> :
-                                    <div className="text-center p-12"><FileText size={64} className="mx-auto mb-6 opacity-30" /><p className="text-xl font-medium">Preview not available</p><a href={`http://localhost:5000${previewFile.url}`} download className="text-primary hover:underline mt-4 inline-block font-medium">Download File</a></div>}
+                        <div className="flex-1 bg-black/5 overflow-auto flex items-center justify-center p-2 min-h-0">
+                            {previewFile.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                                <img src={previewFile.url} className="max-w-full max-h-[80vh] object-contain shadow-lg rounded-xl" alt={previewFile.name} />
+                            ) : previewFile.name.match(/\.pdf$/i) ? (
+                                <iframe src={previewFile.url} className="w-full h-[80vh] bg-white rounded-xl shadow-lg" title={previewFile.name} />
+                            ) : (
+                                <div className="text-center p-12">
+                                    <FileText size={64} className="mx-auto mb-6 opacity-30" />
+                                    <p className="text-xl font-medium">Preview not available</p>
+                                    <a href={previewFile.url} download={previewFile.name} className="text-primary hover:underline mt-4 inline-block font-medium">Download File</a>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
