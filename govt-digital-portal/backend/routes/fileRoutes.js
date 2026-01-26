@@ -3,6 +3,9 @@ const router = express.Router();
 const File = require('../models/File');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
+const s3Client = require('../config/r2');
+const { PutObjectCommand } = require('@aws-sdk/client-s3');
+const path = require('path');
 
 // Get My Files
 router.get('/', protect, async (req, res) => {
@@ -18,7 +21,7 @@ router.get('/', protect, async (req, res) => {
     }
 });
 
-// Upload Files (Bulk)
+// Upload Files (Bulk) to R2
 router.post('/upload', protect, upload.array('files'), async (req, res) => {
     const { parentId } = req.body;
     const pid = parentId === 'null' ? null : parentId;
@@ -28,11 +31,24 @@ router.post('/upload', protect, upload.array('files'), async (req, res) => {
     try {
         const uploadedFiles = [];
         for (const file of req.files) {
+            const fileName = `uploads/${Date.now()}-${file.originalname}`;
+
+            const uploadParams = {
+                Bucket: process.env.R2_BUCKET_NAME,
+                Key: fileName,
+                Body: file.buffer,
+                ContentType: file.mimetype,
+            };
+
+            await s3Client.send(new PutObjectCommand(uploadParams));
+
+            const fileUrl = `${process.env.R2_PUBLIC_URL}/${fileName}`;
+
             const newFile = await File.create({
                 name: file.originalname,
                 type: 'file',
-                extension: require('path').extname(file.originalname),
-                url: `/uploads/${file.filename}`,
+                extension: path.extname(file.originalname),
+                url: fileUrl,
                 size: file.size,
                 owner: req.user.id,
                 parentId: pid
@@ -41,7 +57,8 @@ router.post('/upload', protect, upload.array('files'), async (req, res) => {
         }
         res.status(201).json(uploadedFiles);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('R2 Upload Error:', error);
+        res.status(500).json({ message: 'Error uploading to Cloudflare R2' });
     }
 });
 
