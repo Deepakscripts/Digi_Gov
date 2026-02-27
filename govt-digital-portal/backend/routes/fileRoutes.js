@@ -169,9 +169,10 @@ router.get('/download/:id', protect, async (req, res) => {
             return res.status(404).json({ message: 'File not found' });
         }
 
-        // Extract the key from the full URL
-        const urlParts = file.url.split('/');
-        const key = urlParts.slice(3).join('/'); // Gets "uploads/filename.pdf"
+        // Extract the key from the full URL using the URL API
+        const urlObj = new URL(file.url);
+        // Remove the leading slash from pathname to get the key (e.g., "/uploads/file.png" -> "uploads/file.png")
+        const key = urlObj.pathname.substring(1);
 
         const command = new GetObjectCommand({
             Bucket: process.env.R2_BUCKET_NAME,
@@ -201,9 +202,10 @@ router.get('/view/:id', protect, async (req, res) => {
             return res.status(404).json({ message: 'File not found' });
         }
 
-        // Extract the key from the full URL
-        const urlParts = file.url.split('/');
-        const key = urlParts.slice(3).join('/');
+        // Extract the key from the full URL using the URL API
+        const urlObj = new URL(file.url);
+        // Remove the leading slash from pathname to get the key (e.g., "/uploads/file.png" -> "uploads/file.png")
+        const key = urlObj.pathname.substring(1);
 
         const command = new GetObjectCommand({
             Bucket: process.env.R2_BUCKET_NAME,
