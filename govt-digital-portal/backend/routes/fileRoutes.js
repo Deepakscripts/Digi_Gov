@@ -163,12 +163,22 @@ router.get('/search', protect, async (req, res) => {
 
 // Helper function to extract the R2 key from a file URL
 // Handles both properly formatted URLs and legacy URLs with 'undefined' prefix
+// Expected key format: 'uploads/timestamp-filename'
 const extractR2Key = (fileUrl) => {
-    // The key always starts with 'uploads/' - find it in the URL
-    const uploadsIndex = fileUrl.indexOf('uploads/');
-    if (uploadsIndex !== -1) {
-        return fileUrl.substring(uploadsIndex);
+    // Handle null, undefined, or non-string inputs
+    if (!fileUrl || typeof fileUrl !== 'string') {
+        return '';
     }
+    
+    // Look for the 'uploads/' prefix which is the expected key format for this application
+    // Match '/uploads/' or start with 'uploads/' to avoid matching in domain names
+    const uploadsMatch = fileUrl.match(/(?:^|\/)uploads\/.+$/);
+    if (uploadsMatch) {
+        // Extract just the 'uploads/...' part
+        const match = uploadsMatch[0];
+        return match.startsWith('/') ? match.substring(1) : match;
+    }
+    
     // Fallback: try URL parsing for other URL formats
     try {
         const urlObj = new URL(fileUrl);
