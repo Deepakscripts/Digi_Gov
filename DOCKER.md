@@ -85,10 +85,11 @@ This guide covers how to run the Digi Gov Portal using Docker, both locally and 
 | `JWT_SECRET` | JWT signing secret | `supersecretkey123` |
 | `BACKEND_URL` | Backend API URL (runtime, for nginx proxy) | `http://backend:5000` |
 | `VITE_API_URL` | Frontend API URL (build-time, optional) | (empty, uses proxy) |
-| `AWS_ACCESS_KEY_ID` | AWS/R2 access key | (optional) |
-| `AWS_SECRET_ACCESS_KEY` | AWS/R2 secret key | (optional) |
-| `AWS_REGION` | AWS/R2 region | (optional) |
-| `S3_BUCKET_NAME` | S3/R2 bucket name | (optional) |
+| `R2_ACCESS_KEY_ID` | Cloudflare R2 access key | (required for file uploads) |
+| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 secret key | (required for file uploads) |
+| `R2_BUCKET_NAME` | Cloudflare R2 bucket name | (required for file uploads) |
+| `R2_ENDPOINT` | Cloudflare R2 endpoint URL | (required for file uploads) |
+| `R2_PUBLIC_URL` | Cloudflare R2 public bucket URL | (required for file uploads) |
 
 ## Deploying to Railway
 
@@ -108,6 +109,11 @@ This guide covers how to run the Digi Gov Portal using Docker, both locally and 
      MONGO_URI=<mongodb-connection-string>
      JWT_SECRET=<your-secure-secret>
      PORT=5000
+     R2_ACCESS_KEY_ID=<your-r2-access-key>
+     R2_SECRET_ACCESS_KEY=<your-r2-secret-key>
+     R2_BUCKET_NAME=<your-r2-bucket-name>
+     R2_ENDPOINT=<your-r2-endpoint-url>
+     R2_PUBLIC_URL=<your-r2-public-bucket-url>
      ```
 
 4. **Deploy Frontend:**
