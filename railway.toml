@@ -1,0 +1,14 @@
+# Railway Configuration for Digi Gov Portal
+# This file provides Railway-specific deployment configuration
+
+[build]
+# Railway will auto-detect Dockerfiles
+
+[deploy]
+# Restart policy
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Health check settings
+healthcheckPath = "/"
+healthcheckTimeout = 30
