@@ -15,11 +15,17 @@ const seedAdmin = async () => {
         if (existingAdmin) {
             console.log('Admin user already exists, skipping seed');
         } else {
+            // Warn if using default password
+            const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+            if (!process.env.ADMIN_PASSWORD) {
+                console.warn('WARNING: Using default admin password. Set ADMIN_PASSWORD environment variable in production!');
+            }
+
             // Create admin user
             const adminUser = await User.create({
                 name: process.env.ADMIN_NAME || 'Admin',
                 email: adminEmail,
-                password: process.env.ADMIN_PASSWORD || 'admin123',
+                password: adminPassword,
                 role: 'admin'
             });
             console.log(`Admin user created: ${adminUser.email}`);
