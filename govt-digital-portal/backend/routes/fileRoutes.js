@@ -161,6 +161,24 @@ router.get('/search', protect, async (req, res) => {
     }
 });
 
+// Helper function to extract the R2 key from a file URL
+// Handles both properly formatted URLs and legacy URLs with 'undefined' prefix
+const extractR2Key = (fileUrl) => {
+    // The key always starts with 'uploads/' - find it in the URL
+    const uploadsIndex = fileUrl.indexOf('uploads/');
+    if (uploadsIndex !== -1) {
+        return fileUrl.substring(uploadsIndex);
+    }
+    // Fallback: try URL parsing for other URL formats
+    try {
+        const urlObj = new URL(fileUrl);
+        return urlObj.pathname.substring(1);
+    } catch {
+        // If all else fails, return the original (will likely fail at R2 level)
+        return fileUrl;
+    }
+};
+
 // Proxy Download - Fetch file from R2 and serve (Bypasses CORS)
 router.get('/download/:id', protect, async (req, res) => {
     try {
@@ -169,10 +187,8 @@ router.get('/download/:id', protect, async (req, res) => {
             return res.status(404).json({ message: 'File not found' });
         }
 
-        // Extract the key from the full URL using the URL API
-        const urlObj = new URL(file.url);
-        // Remove the leading slash from pathname to get the key (e.g., "/uploads/file.png" -> "uploads/file.png")
-        const key = urlObj.pathname.substring(1);
+        // Extract the key from the file URL (handles legacy 'undefined/uploads/...' URLs)
+        const key = extractR2Key(file.url);
 
         const command = new GetObjectCommand({
             Bucket: process.env.R2_BUCKET_NAME,
@@ -202,10 +218,8 @@ router.get('/view/:id', protect, async (req, res) => {
             return res.status(404).json({ message: 'File not found' });
         }
 
-        // Extract the key from the full URL using the URL API
-        const urlObj = new URL(file.url);
-        // Remove the leading slash from pathname to get the key (e.g., "/uploads/file.png" -> "uploads/file.png")
-        const key = urlObj.pathname.substring(1);
+        // Extract the key from the file URL (handles legacy 'undefined/uploads/...' URLs)
+        const key = extractR2Key(file.url);
 
         const command = new GetObjectCommand({
             Bucket: process.env.R2_BUCKET_NAME,
