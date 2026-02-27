@@ -33,6 +33,9 @@ RUN rm -rf .env.example .gitignore
 # Create uploads directory with correct permissions
 RUN mkdir -p uploads && chown expressjs:nodejs uploads
 
+# Make startup script executable
+RUN chmod +x scripts/startup.sh
+
 # Switch to non-root user
 USER expressjs
 
@@ -47,5 +50,5 @@ ENV PORT=5000
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
   CMD node healthcheck.js
 
-# Start the application
-CMD ["node", "server.js"]
+# Start the application using startup script (runs seed first)
+CMD ["sh", "scripts/startup.sh"]
