@@ -1,1 +1,30 @@
-./desktop-app
+# Desktop app (not deployed)
+govt-digital-portal/desktop-app/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Node modules (should be in subdirectories)
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

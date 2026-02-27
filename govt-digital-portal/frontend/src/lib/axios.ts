@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: '/govapi',
+    baseURL: import.meta.env.VITE_API_URL || '/govapi',
 });
 
 api.interceptors.request.use((config) => {

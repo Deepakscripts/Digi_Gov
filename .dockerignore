@@ -1,0 +1,30 @@
+# Root .dockerignore for Docker Compose builds
+
+# Desktop app (not deployed)
+govt-digital-portal/desktop-app
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation (except README)
+*.md
+!README.md
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Railway config (not needed in containers)
+railway.toml
