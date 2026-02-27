@@ -24,24 +24,14 @@ RUN npm run build
 # Production stage - serve with nginx
 FROM nginx:alpine AS runner
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy nginx template configuration
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nginx-app && \
-    adduser -S -D -H -u 1001 -G nginx-app nginx-app && \
-    chown -R nginx-app:nginx-app /var/cache/nginx && \
-    chown -R nginx-app:nginx-app /var/log/nginx && \
-    chown -R nginx-app:nginx-app /etc/nginx/conf.d && \
-    touch /var/run/nginx.pid && \
-    chown -R nginx-app:nginx-app /var/run/nginx.pid && \
-    chown -R nginx-app:nginx-app /usr/share/nginx/html
-
-# Switch to non-root user
-USER nginx-app
+# Set default backend URL (can be overridden at runtime)
+ENV BACKEND_URL=http://backend:5000
 
 # Expose port 80
 EXPOSE 80
@@ -50,5 +40,6 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
 
-# Start nginx
+# Start nginx with envsubst for environment variable substitution
+# nginx:alpine image automatically processes templates in /etc/nginx/templates/
 CMD ["nginx", "-g", "daemon off;"]

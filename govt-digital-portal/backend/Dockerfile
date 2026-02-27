@@ -45,7 +45,7 @@ ENV PORT=5000
 
 # Health check for Railway
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:5000/api/auth', (r) => r.statusCode === 200 || r.statusCode === 401 ? process.exit(0) : process.exit(1)).on('error', () => process.exit(1))"
+  CMD node healthcheck.js
 
 # Start the application
 CMD ["node", "server.js"]

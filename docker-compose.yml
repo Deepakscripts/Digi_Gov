@@ -50,7 +50,7 @@ services:
     networks:
       - digigov-network
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/api/auth', (r) => process.exit(r.statusCode === 200 || r.statusCode === 401 ? 0 : 1)).on('error', () => process.exit(1))"]
+      test: ["CMD", "node", "healthcheck.js"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -62,11 +62,13 @@ services:
       context: ./govt-digital-portal/frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=${VITE_API_URL:-http://localhost:5000}
+        - VITE_API_URL=${VITE_API_URL:-}
     container_name: digigov-frontend
     restart: unless-stopped
     ports:
       - "80:80"
+    environment:
+      - BACKEND_URL=http://backend:5000
     depends_on:
       - backend
     networks:

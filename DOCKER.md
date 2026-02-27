@@ -83,7 +83,8 @@ This guide covers how to run the Digi Gov Portal using Docker, both locally and 
 | `PORT` | Backend port | `5000` |
 | `MONGO_URI` | MongoDB connection string | `mongodb://mongodb:27017/govt-shop-portal` |
 | `JWT_SECRET` | JWT signing secret | `supersecretkey123` |
-| `VITE_API_URL` | Frontend API URL (build-time) | `http://localhost:5000` |
+| `BACKEND_URL` | Backend API URL (runtime, for nginx proxy) | `http://backend:5000` |
+| `VITE_API_URL` | Frontend API URL (build-time, optional) | (empty, uses proxy) |
 | `AWS_ACCESS_KEY_ID` | AWS/R2 access key | (optional) |
 | `AWS_SECRET_ACCESS_KEY` | AWS/R2 secret key | (optional) |
 | `AWS_REGION` | AWS/R2 region | (optional) |
@@ -112,7 +113,11 @@ This guide covers how to run the Digi Gov Portal using Docker, both locally and 
 4. **Deploy Frontend:**
    - Add a new service from GitHub repo
    - Set the root directory to `govt-digital-portal/frontend`
-   - Add build argument:
+   - Add environment variable:
+     ```
+     BACKEND_URL=https://<your-backend-url>.railway.app
+     ```
+   - (Optional) If using direct API calls instead of proxy, add build argument:
      ```
      VITE_API_URL=https://<your-backend-url>.railway.app/api
      ```
